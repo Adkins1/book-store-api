@@ -12,7 +12,7 @@ const handleLogin = async (req, res) => {
 
   const foundUser = await User.findOne({ username: user }).exec()
 
-  !foundUser && res.sendStatus(401) //Unauthorized
+  if (!foundUser) return res.sendStatus(401) //Unauthorized
 
   // evaluate password
   const decryptedPassword = await encMethod.decrypt(
@@ -22,7 +22,7 @@ const handleLogin = async (req, res) => {
   const originalPassword = decryptedPassword.toString(cryptoJs.enc.Utf8)
 
   if (originalPassword === pwd) {
-    const roles = Object.values(foundUser.roles)
+    const roles = Object.values(foundUser.roles).filter(Boolean)
     // create JWTs
     const accessToken = jwt.sign(
       {
@@ -32,12 +32,12 @@ const handleLogin = async (req, res) => {
         },
       },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: ACCESS_TOKEN_EXPIRATION }
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION }
     )
     const refreshToken = jwt.sign(
       { username: foundUser.username },
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: REFRESH_TOKEN_EXPIRATION }
+      { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION }
     )
     // Saving refreshToken with current user
     foundUser.refreshToken = refreshToken
@@ -49,7 +49,7 @@ const handleLogin = async (req, res) => {
       sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000,
     }) //secure: true,
-    res.json({ accessToken })
+    res.json({ accessToken, roles, user })
   } else {
     res.sendStatus(401)
   }

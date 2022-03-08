@@ -3,11 +3,11 @@ const jwt = require("jsonwebtoken")
 
 const handleRefreshToken = async (req, res) => {
   const cookies = req.cookies
-  !cookies?.jwt && res.sendStatus(401)
+  if (!cookies?.jwt) return res.sendStatus(401)
   const refreshToken = cookies.jwt
 
   const foundUser = await User.findOne({ refreshToken }).exec()
-  !foundUser && res.sendStatus(403) //Forbidden
+  if (!foundUser) return res.sendStatus(403) //Forbidden
   // evaluate jwt
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
     if (err || foundUser.username !== decoded.username)
@@ -21,7 +21,7 @@ const handleRefreshToken = async (req, res) => {
         },
       },
       process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: ACCESS_TOKEN_EXPIRATION }
+      { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION }
     )
     res.json({ accessToken })
   })

@@ -2,15 +2,17 @@ const Book = require("../model/Book")
 
 const getAllBooks = async (req, res) => {
   const books = await Book.find()
-  !books && res.status(204).json({ message: "No books found." })
+  if (books) return res.status(204).json({ message: "No books found." })
   res.json(books)
 }
 
 const createNewBook = async (req, res) => {
-  !req?.body?.name && res.status(400).json({ message: "Book name required" })
-  !req?.body?.desc &&
-    res.status(400).json({ message: "Book description required" })
-  !req?.body?.price && res.status(400).json({ message: "Book price required" })
+  if (!req?.body?.name)
+    return res.status(400).json({ message: "Book name required" })
+  if (!req?.body?.desc)
+    return res.status(400).json({ message: "Book description required" })
+  if (!req?.body?.price)
+    return res.status(400).json({ message: "Book price required" })
 
   try {
     const result = await Book.create({
@@ -26,13 +28,13 @@ const createNewBook = async (req, res) => {
 }
 
 const updateBook = async (req, res) => {
-  !req?.body?.id &&
-    res.status(400).json({ message: "ID parameter is required" })
+  if (!req?.body?.id)
+    return res.status(400).json({ message: "ID parameter is required" })
 
   const book = await Book.findOne({ _id: req.body.id }).exec()
 
-  !book &&
-    res
+  if (!book)
+    return res
       .status(204)
       .json({ message: `No book in DB matches ID: ${req.body.id}.` })
 
@@ -45,11 +47,12 @@ const updateBook = async (req, res) => {
 }
 
 const deleteBook = async (req, res) => {
-  !req?.body?.id && res.status(400).json({ message: "Book ID required." })
+  if (!req?.body?.id)
+    return res.status(400).json({ message: "Book ID required." })
 
   const book = await Book.findOne({ _id: req.body.id }).exec()
-  !book &&
-    res
+  if (!book)
+    return res
       .status(204)
       .json({ message: `No book in DB matches ID: ${req.body.id}.` })
 
@@ -58,11 +61,12 @@ const deleteBook = async (req, res) => {
 }
 
 const getBook = async (req, res) => {
-  !req?.params?.id && res.status(400).json({ message: "Book ID required." })
+  if (!req?.params?.id)
+    return res.status(400).json({ message: "Book ID required." })
 
   const book = await Book.findOne({ _id: req.params.id }).exec()
-  !book &&
-    res
+  if (!book)
+    return res
       .status(204)
       .json({ message: `No book in DB matches ID: ${req.params.id}.` })
   res.json(book)
